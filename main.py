@@ -362,24 +362,22 @@ class DatabaseChatbot:
         self.current_tenant = None
     
     def _get_system_prompt(self) -> str:
-        return """
-        You are a helpful customer service assistant for a property management company. 
-        You can access real tenant data to provide specific answers about:
-        
-        1. PERSONAL ACCOUNT INFO: Lease details, contract dates, unit information
-        2. PAYMENT STATUS: Current balance, overdue amounts, payment history
-        3. MAINTENANCE REQUESTS: Current tickets, status updates
-        
-        GUIDELINES:
-        - Be friendly, professional, and helpful
-        - Use actual data when available to give specific answers
-        - For general questions, provide policy information
-        - Always protect tenant privacy - only discuss the current tenant's information
-        - Be empathetic about payment or maintenance issues
-        
-        When you have tenant data, provide specific, accurate information.
-        When you don't have data, guide them to contact the office.
-        """
+        return """You are a helpful customer service assistant for a property management company. 
+You can access real tenant data to provide specific answers about:
+
+1. PERSONAL ACCOUNT INFO: Lease details, contract dates, unit information
+2. PAYMENT STATUS: Current balance, overdue amounts, payment history  
+3. MAINTENANCE REQUESTS: Current tickets, status updates
+
+GUIDELINES:
+- Be friendly, professional, and helpful
+- Use actual data when available to give specific answers
+- For general questions, provide policy information
+- Always protect tenant privacy - only discuss the current tenant's information
+- Be empathetic about payment or maintenance issues
+
+When you have tenant data, provide specific, accurate information.
+When you don't have data, guide them to contact the office."""
     
     def identify_tenant_from_query(self, query: str) -> Optional[Dict[str, Any]]:
         """Extract tenant name from query and find in database"""
@@ -457,25 +455,23 @@ class DatabaseChatbot:
                 unit_number = lease_info['unit_number']
                 property_name = lease_info['property_name']
                 
-                response = f"""
-                Hi {self.current_tenant['first_name']}! Here are your lease details:
-                
-                **Your Lease Information:**
-                🏠 **Property:** {property_name}
-                🚪 **Unit:** {unit_number}
-                📅 **Lease End Date:** {end_date}
-                💰 **Monthly Rent:** ${lease_info['rent_amount']:.2f}
-                🛡️ **Security Deposit:** ${lease_info['security_deposit']:.2f}
-                
-                **Important Notes:**
-                • Renewal offers are typically sent 90 days before expiration
-                • If you want to renew, contact us as early as possible
-                • 30-60 days notice required if you plan to move out
-                
-                **Need to discuss renewal or have questions?**
-                📞 Call our office: (555) 123-4567
-                📧 Email: info@propertymanagement.com
-                """
+            response = f"""Hi {self.current_tenant['first_name']}! Here are your lease details:
+
+**Your Lease Information:**
+🏠 **Property:** {property_name}
+🚪 **Unit:** {unit_number}
+📅 **Lease End Date:** {end_date}
+💰 **Monthly Rent:** ${lease_info['rent_amount']:.2f}
+🛡️ **Security Deposit:** ${lease_info['security_deposit']:.2f}
+
+**Important Notes:**
+• Renewal offers are typically sent 90 days before expiration
+• If you want to renew, contact us as early as possible
+• 30-60 days notice required if you plan to move out
+
+**Need to discuss renewal or have questions?**
+📞 Call our office: (555) 123-4567
+📧 Email: info@propertymanagement.com"""
                 
                 return {
                     'response': response,
@@ -493,22 +489,20 @@ class DatabaseChatbot:
             lease_info = self.db_engine.get_lease_details(tenant_id)
             
             if lease_info:
-                response = f"""
-                Hi {self.current_tenant['first_name']}! Here's your unit information:
-                
-                **Your Unit Details:**
-                🏠 **Property:** {lease_info['property_name']}
-                🚪 **Unit Number:** {lease_info['unit_number']}
-                🛏️ **Bedrooms:** {lease_info['bedrooms']}
-                🛁 **Bathrooms:** {lease_info['bathrooms']}
-                📐 **Square Feet:** {lease_info['square_feet']} sq ft
-                📍 **Address:** {lease_info['address_line1']}, {lease_info['city']}, {lease_info['state']}
-                
-                **Need help with your unit?**
-                • Maintenance requests: Submit online or call (555) 123-4567
-                • Unit modifications: Require written approval
-                • Key replacement: $25 fee, available during office hours
-                """
+                response = f"""Hi {self.current_tenant['first_name']}! Here's your unit information:
+
+**Your Unit Details:**
+🏠 **Property:** {lease_info['property_name']}
+🚪 **Unit Number:** {lease_info['unit_number']}
+🛏️ **Bedrooms:** {lease_info['bedrooms']}
+🛁 **Bathrooms:** {lease_info['bathrooms']}
+📐 **Square Feet:** {lease_info['square_feet']} sq ft
+📍 **Address:** {lease_info['address_line1']}, {lease_info['city']}, {lease_info['state']}
+
+**Need help with your unit?**
+• Maintenance requests: Submit online or call (555) 123-4567
+• Unit modifications: Require written approval
+• Key replacement: $25 fee, available during office hours"""
                 
                 return {
                     'response': response,
@@ -547,31 +541,29 @@ class DatabaseChatbot:
         
         if outstanding > 0:
             if overdue > 0:
-                response = f"""
-                Hi {self.current_tenant['first_name']}! Here's your current payment status:
-                
-                ⚠️ **URGENT - You have overdue payments:**
-                💰 **Total Outstanding:** ${outstanding:.2f}
-                🚨 **Overdue Amount:** ${overdue:.2f}
-                📄 **Unpaid Invoices:** {unpaid_count}
-                📅 **Next Due Date:** {next_due if next_due else 'N/A'}
-                
-                **Immediate Action Required:**
-                📞 **Call NOW:** (555) 123-4567 to discuss payment arrangements
-                💻 **Pay Online:** Use your tenant portal for immediate payment
-                🏢 **Visit Office:** Mon-Fri 8AM-6PM, Sat 9AM-4PM
-                
-                **Important:**
-                • Late fees of $50 apply after the 5th of each month
-                • Additional late fees may accrue on overdue amounts
-                • Contact us immediately to avoid further penalties
-                
-                **Payment Methods:**
-                • Online portal (fastest)
-                • Phone payment: (555) 123-4567
-                • Check/money order at office
-                • Bank transfer/ACH
-                """
+                response = f"""Hi {self.current_tenant['first_name']}! Here's your current payment status:
+
+⚠️ **URGENT - You have overdue payments:**
+💰 **Total Outstanding:** ${outstanding:.2f}
+🚨 **Overdue Amount:** ${overdue:.2f}
+📄 **Unpaid Invoices:** {unpaid_count}
+📅 **Next Due Date:** {next_due if next_due else 'N/A'}
+
+**Immediate Action Required:**
+📞 **Call NOW:** (555) 123-4567 to discuss payment arrangements
+💻 **Pay Online:** Use your tenant portal for immediate payment
+🏢 **Visit Office:** Mon-Fri 8AM-6PM, Sat 9AM-4PM
+
+**Important:**
+• Late fees of $50 apply after the 5th of each month
+• Additional late fees may accrue on overdue amounts
+• Contact us immediately to avoid further penalties
+
+**Payment Methods:**
+• Online portal (fastest)
+• Phone payment: (555) 123-4567
+• Check/money order at office
+• Bank transfer/ACH"""
             else:
                 response = f"""
                 Hi {self.current_tenant['first_name']}! Here's your current payment status:
