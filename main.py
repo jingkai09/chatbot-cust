@@ -516,13 +516,14 @@ def main():
             
             # Display result
             if result['success']:
-                st.success(f"**Assistant:** {result['response']}")
+                st.write("**Assistant:**")
+                st.write(result['response'])
                 
                 # Show additional information if query type suggests it
                 query_type = result.get('query_type', '')
                 
                 if query_type == 'maintenance_request':
-                    st.error("🚨 **Emergency Situations - Call immediately: (555) 123-EMERGENCY**")
+                    st.error("🚨 Emergency Situations - Call immediately: (555) 123-EMERGENCY")
                     st.write("• Water leaks or flooding")
                     st.write("• No heat or air conditioning") 
                     st.write("• Electrical issues or power outages")
@@ -530,7 +531,7 @@ def main():
                     st.write("• Security concerns")
                 
                 elif query_type == 'payment_inquiry':
-                    st.info("💳 **Payment Methods Available**")
+                    st.info("💳 Payment Methods Available")
                     st.write("• Online portal (24/7)")
                     st.write("• Bank transfer/ACH")
                     st.write("• Credit/Debit card")
@@ -540,12 +541,12 @@ def main():
                 elif query_type == 'contact_info':
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.info("🏢 **Office Information**")
+                        st.info("🏢 Office Information")
                         st.write("**Phone:** (555) 123-4567")
                         st.write("**Email:** info@propertymanagement.com")
                         st.write("**Emergency:** (555) 123-EMERGENCY")
                     with col2:
-                        st.info("🕐 **Office Hours**")
+                        st.info("🕐 Office Hours")
                         st.write("**Mon-Fri:** 8AM - 6PM")
                         st.write("**Saturday:** 9AM - 4PM")
                         st.write("**Sunday:** Closed")
