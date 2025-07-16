@@ -398,12 +398,6 @@ def main():
         text-align: center;
         margin-bottom: 2rem;
     }
-    .chat-container {
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin: 1rem 0;
-    }
     .user-message {
         background: #e3f2fd;
         padding: 1rem;
@@ -417,19 +411,6 @@ def main():
         border-radius: 15px;
         margin: 1rem 0;
         border-left: 4px solid #4caf50;
-    }
-    .quick-question {
-        background: white;
-        padding: 0.8rem;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        margin: 0.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-    .quick-question:hover {
-        background: #f0f0f0;
-        border-color: #4caf50;
     }
     .info-box {
         background: #e8f5e8;
@@ -446,7 +427,6 @@ def main():
     <div class="main-header">
         <h1>🏠 Tenant Information Portal</h1>
         <p>Get instant answers about policies, procedures, and general information</p>
-        <p><small>No account login required - General information available to all tenants</small></p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -536,56 +516,39 @@ def main():
             
             # Display result
             if result['success']:
-                st.markdown(f"""
-                <div class="bot-message">
-                    <strong>Assistant:</strong> {result['response']}
-                </div>
-                """, unsafe_allow_html=True)
+                st.success(f"**Assistant:** {result['response']}")
                 
                 # Show additional information if query type suggests it
                 query_type = result.get('query_type', '')
                 
                 if query_type == 'maintenance_request':
-                    st.markdown("""
-                    <div class="info-box">
-                        <h4>🚨 Emergency Situations</h4>
-                        <p><strong>Call immediately: (555) 123-EMERGENCY</strong></p>
-                        <p>• Water leaks or flooding<br>
-                        • No heat or air conditioning<br>
-                        • Electrical issues or power outages<br>
-                        • Gas leaks<br>
-                        • Security concerns</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.error("🚨 **Emergency Situations - Call immediately: (555) 123-EMERGENCY**")
+                    st.write("• Water leaks or flooding")
+                    st.write("• No heat or air conditioning") 
+                    st.write("• Electrical issues or power outages")
+                    st.write("• Gas leaks")
+                    st.write("• Security concerns")
                 
                 elif query_type == 'payment_inquiry':
-                    st.markdown("""
-                    <div class="info-box">
-                        <h4>💳 Payment Methods Available</h4>
-                        <p>• Online portal (24/7)<br>
-                        • Bank transfer/ACH<br>
-                        • Credit/Debit card<br>
-                        • Check or money order<br>
-                        • Automatic payment setup</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.info("💳 **Payment Methods Available**")
+                    st.write("• Online portal (24/7)")
+                    st.write("• Bank transfer/ACH")
+                    st.write("• Credit/Debit card")
+                    st.write("• Check or money order") 
+                    st.write("• Automatic payment setup")
                 
                 elif query_type == 'contact_info':
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.markdown("""
-                        **🏢 Office Information**
-                        - **Phone:** (555) 123-4567
-                        - **Email:** info@propertymanagement.com
-                        - **Emergency:** (555) 123-EMERGENCY
-                        """)
+                        st.info("🏢 **Office Information**")
+                        st.write("**Phone:** (555) 123-4567")
+                        st.write("**Email:** info@propertymanagement.com")
+                        st.write("**Emergency:** (555) 123-EMERGENCY")
                     with col2:
-                        st.markdown("""
-                        **🕐 Office Hours**
-                        - **Mon-Fri:** 8AM - 6PM
-                        - **Saturday:** 9AM - 4PM
-                        - **Sunday:** Closed
-                        """)
+                        st.info("🕐 **Office Hours**")
+                        st.write("**Mon-Fri:** 8AM - 6PM")
+                        st.write("**Saturday:** 9AM - 4PM")
+                        st.write("**Sunday:** Closed")
             
             else:
                 st.error("❌ I had trouble processing your question. Please try rephrasing or contact our office directly.")
@@ -632,17 +595,18 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.markdown("""
-    <div style="text-align: center; color: #666; padding: 1.5rem; background: #f8f9fa; border-radius: 10px;">
-        <h4>Need Personal Account Help?</h4>
-        <p><strong>For account-specific questions, payments, or personal assistance:</strong></p>
-        <p>📞 <strong>Office:</strong> (555) 123-4567 | 🚨 <strong>Emergency:</strong> (555) 123-EMERGENCY</p>
-        <p>🕒 <strong>Office Hours:</strong> Monday-Friday 8AM-6PM, Saturday 9AM-4PM</p>
-        <p>📧 <strong>Email:</strong> info@propertymanagement.com</p>
-        <br>
-        <p><em>This portal provides general information. For specific account details, please contact our office.</em></p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.info("**Need Personal Account Help?**")
+    st.write("For account-specific questions, payments, or personal assistance:")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("📞 **Office:** (555) 123-4567")
+        st.write("🚨 **Emergency:** (555) 123-EMERGENCY")
+    with col2:
+        st.write("🕒 **Office Hours:** Mon-Fri 8AM-6PM, Sat 9AM-4PM")
+        st.write("📧 **Email:** info@propertymanagement.com")
+    
+    st.caption("This portal provides general information. For specific account details, please contact our office.")
 
 if __name__ == "__main__":
     main()
