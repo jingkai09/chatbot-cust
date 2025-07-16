@@ -178,18 +178,62 @@ class DatabaseQueryEngine:
         try:
             conn = sqlite3.connect(self.db_path)
             
+            # First, let's try the most flexible query
             query = """
             SELECT l.*, u.unit_number, u.bedrooms, u.bathrooms, u.square_feet,
                    p.name as property_name, p.address_line1, p.city, p.state
             FROM leases l
-            JOIN units u ON l.unit_id = u.id
-            JOIN properties p ON u.property_id = p.id
-            WHERE l.tenant_id = ? AND (l.status = 'active' OR l.status IS NULL)
+            LEFT JOIN units u ON l.unit_id = u.id
+            LEFT JOIN properties p ON u.property_id = p.id
+            WHERE l.tenant_id = ?
             ORDER BY l.created_at DESC
             LIMIT 1
             """
             
             df = pd.read_sql_query(query, conn, params=[tenant_id])
+            
+            # If that doesn't work, try without status filter
+            if df.empty:
+                query = """
+                SELECT l.*, 
+                       COALESCE(u.unit_number, 'N/A') as unit_number, 
+                       COALESCE(u.bedrooms, 0) as bedrooms, 
+                       COALESCE(u.bathrooms, 0) as bathrooms, 
+                       COALESCE(u.square_feet, 0) as square_feet,
+                       COALESCE(p.name, 'N/A') as property_name, 
+                       COALESCE(p.address_line1, 'N/A') as address_line1, 
+                       COALESCE(p.city, 'N/A') as city, 
+                       COALESCE(p.state, 'N/A') as state
+                FROM leases l
+                LEFT JOIN units u ON l.unit_id = u.id
+                LEFT JOIN properties p ON u.property_id = p.id
+                WHERE l.tenant_id = ?
+                ORDER BY l.id DESC
+                LIMIT 1
+                """
+                df = pd.read_sql_query(query, conn, params=[tenant_id])
+            
+            # If still no results, try even simpler query
+            if df.empty:
+                query = "SELECT * FROM leases WHERE tenant_id = ? ORDER BY id DESC LIMIT 1"
+                df = pd.read_sql_query(query, conn, params=[tenant_id])
+                
+                # Add default values for missing columns
+                if not df.empty:
+                    row = df.iloc[0].to_dict()
+                    row.update({
+                        'unit_number': 'N/A',
+                        'bedrooms': 0,
+                        'bathrooms': 0,
+                        'square_feet': 0,
+                        'property_name': 'N/A',
+                        'address_line1': 'N/A',
+                        'city': 'N/A',
+                        'state': 'N/A'
+                    })
+                    conn.close()
+                    return row
+            
             conn.close()
             
             if not df.empty:
@@ -427,9 +471,11 @@ When you don't have data, guide them to contact the office."""
             lease_info = self.db_engine.get_lease_details(tenant_id)
             
             if lease_info:
-                end_date = lease_info['end_date']
-                unit_number = lease_info['unit_number']
-                property_name = lease_info['property_name']
+                end_date = lease_info.get('end_date', 'N/A')
+                unit_number = lease_info.get('unit_number', 'N/A')
+                property_name = lease_info.get('property_name', 'N/A')
+                rent_amount = lease_info.get('rent_amount', 0)
+                security_deposit = lease_info.get('security_deposit', 0)
                 
                 response = f"""Hi {self.current_tenant['first_name']}! Here are your lease details:
 
@@ -437,8 +483,8 @@ When you don't have data, guide them to contact the office."""
 🏠 **Property:** {property_name}
 🚪 **Unit:** {unit_number}
 📅 **Lease End Date:** {end_date}
-💰 **Monthly Rent:** ${lease_info['rent_amount']:.2f}
-🛡️ **Security Deposit:** ${lease_info['security_deposit']:.2f}
+💰 **Monthly Rent:** ${rent_amount:.2f}
+🛡️ **Security Deposit:** ${security_deposit:.2f}
 
 **Important Notes:**
 • Renewal offers are typically sent 90 days before expiration
@@ -456,8 +502,24 @@ When you don't have data, guide them to contact the office."""
                     'success': True
                 }
             else:
+                # Let's provide a more helpful response with debugging info
+                response = f"""Hi {self.current_tenant['first_name']}! I found your tenant record but I'm having trouble accessing your lease details from our database.
+
+**What I can try to help with:**
+📞 **Call our office:** (555) 123-4567 for immediate lease information
+📧 **Email us:** info@propertymanagement.com
+💻 **Check online portal:** Your lease details should be available there
+
+**Or try asking me:**
+• "Tell me about my unit"
+• "What's my current balance?"
+• "Check my maintenance requests"
+
+**Tenant ID found:** {tenant_id} (This confirms you're in our system!)"""
+                
                 return {
-                    'response': f"Hi {self.current_tenant['first_name']}! I'm having trouble finding your current lease information. Please contact our office at (555) 123-4567 for assistance with your lease details.",
+                    'response': response,
+                    'debug_info': f"Tenant ID: {tenant_id}, Lease query returned no results",
                     'success': True
                 }
         
@@ -1057,4 +1119,4 @@ def main():
     st.caption("This portal provides general information. For specific account details, please contact our office.")
 
 if __name__ == "__main__":
-    main() 
+    main()
