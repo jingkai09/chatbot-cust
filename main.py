@@ -184,7 +184,9 @@ class DatabaseQueryEngine:
             FROM leases l
             JOIN units u ON l.unit_id = u.id
             JOIN properties p ON u.property_id = p.id
-            WHERE l.tenant_id = ? AND l.status = 'active'
+            WHERE l.tenant_id = ? AND (l.status = 'active' OR l.status IS NULL)
+            ORDER BY l.created_at DESC
+            LIMIT 1
             """
             
             df = pd.read_sql_query(query, conn, params=[tenant_id])
