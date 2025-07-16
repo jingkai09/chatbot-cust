@@ -3,10 +3,4 @@ pandas
 numpy
 google-generativeai
 sentence-transformers
-langchain
 faiss-cpu
-python-dateutil
-pytz
-plotly
-matplotlib
-seaborn
