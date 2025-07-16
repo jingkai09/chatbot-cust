@@ -398,20 +398,6 @@ def main():
         text-align: center;
         margin-bottom: 2rem;
     }
-    .user-message {
-        background: #e3f2fd;
-        padding: 1rem;
-        border-radius: 15px;
-        margin: 1rem 0;
-        border-left: 4px solid #2196f3;
-    }
-    .bot-message {
-        background: #f1f8e9;
-        padding: 1rem;
-        border-radius: 15px;
-        margin: 1rem 0;
-        border-left: 4px solid #4caf50;
-    }
     .info-box {
         background: #e8f5e8;
         padding: 1rem;
