@@ -1041,8 +1041,19 @@ def main():
     # Submit button
     if st.button("💬 Get Answer", type="primary", use_container_width=True) and user_query:
         with st.spinner("Finding the information for you..."):
+            # Set current tenant in chatbot if we have one
+            if st.session_state.current_tenant:
+                st.session_state.chatbot.current_tenant = st.session_state.current_tenant
+            
             # Process query
-            result = st.session_state.chatbot.process_query(user_query)
+            result = st.session_state.chatbot.process_query_with_context(user_query)
+            
+            # Handle tenant identification
+            if result.get('tenant_identified'):
+                st.session_state.current_tenant = result['tenant_info']
+                st.session_state.chatbot.current_tenant = result['tenant_info']
+                st.success("✅ Tenant identified! Ask me anything about your account.")
+                st.rerun()
             
             # Add to chat history
             timestamp = datetime.now()
@@ -1057,37 +1068,65 @@ def main():
                 st.write("**Assistant:**")
                 st.write(result['response'])
                 
-                # Show additional information if query type suggests it
-                query_type = result.get('query_type', '')
-                
-                if query_type == 'maintenance_request':
-                    st.error("🚨 Emergency Situations - Call immediately: (555) 123-EMERGENCY")
-                    st.write("• Water leaks or flooding")
-                    st.write("• No heat or air conditioning") 
-                    st.write("• Electrical issues or power outages")
-                    st.write("• Gas leaks")
-                    st.write("• Security concerns")
-                
-                elif query_type == 'payment_inquiry':
-                    st.info("💳 Payment Methods Available")
-                    st.write("• Online portal (24/7)")
-                    st.write("• Bank transfer/ACH")
-                    st.write("• Credit/Debit card")
-                    st.write("• Check or money order") 
-                    st.write("• Automatic payment setup")
-                
-                elif query_type == 'contact_info':
+                # Show additional data if available
+                if 'lease_data' in result:
+                    st.subheader("📄 Your Lease Details")
+                    lease = result['lease_data']
+                    
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.info("🏢 Office Information")
-                        st.write("**Phone:** (555) 123-4567")
-                        st.write("**Email:** info@propertymanagement.com")
-                        st.write("**Emergency:** (555) 123-EMERGENCY")
+                        st.metric("Monthly Rent", f"${lease['rent_amount']:.2f}")
+                        st.metric("Security Deposit", f"${lease['security_deposit']:.2f}")
                     with col2:
-                        st.info("🕐 Office Hours")
-                        st.write("**Mon-Fri:** 8AM - 6PM")
-                        st.write("**Saturday:** 9AM - 4PM")
-                        st.write("**Sunday:** Closed")
+                        st.metric("Bedrooms", lease['bedrooms'])
+                        st.metric("Square Feet", f"{lease['square_feet']} sq ft")
+                
+                if 'payment_data' in result:
+                    payment = result['payment_data']
+                    st.subheader("💰 Payment Summary")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        balance_color = "normal"
+                        if payment['outstanding_balance'] > 0:
+                            balance_color = "inverse" if payment['overdue_amount'] > 0 else "off"
+                        st.metric("Outstanding Balance", f"${payment['outstanding_balance']:.2f}")
+                    
+                    with col2:
+                        st.metric("Overdue Amount", f"${payment['overdue_amount']:.2f}")
+                    
+                    with col3:
+                        st.metric("Unpaid Invoices", payment['unpaid_invoices'])
+                    
+                    if payment['overdue_amount'] > 0:
+                        st.error("⚠️ **Action Required:** You have overdue payments. Please contact the office immediately!")
+                
+                if 'tickets_data' in result and not result['tickets_data'].empty:
+                    st.subheader("🔧 Your Maintenance Requests")
+                    tickets = result['tickets_data']
+                    
+                    # Display in a nice table format
+                    display_tickets = tickets[['id', 'category', 'description', 'status', 'priority', 'created_at']].copy()
+                    display_tickets['created_at'] = pd.to_datetime(display_tickets['created_at']).dt.strftime('%Y-%m-%d')
+                    display_tickets.columns = ['Ticket #', 'Category', 'Description', 'Status', 'Priority', 'Created']
+                    
+                    st.dataframe(display_tickets, use_container_width=True)
+                
+                # Show unit data if available
+                if 'unit_data' in result:
+                    st.subheader("🏠 Your Unit Information")
+                    unit = result['unit_data']
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.write(f"**Unit:** {unit['unit_number']}")
+                        st.write(f"**Property:** {unit['property_name']}")
+                    with col2:
+                        st.write(f"**Bedrooms:** {unit['bedrooms']}")
+                        st.write(f"**Bathrooms:** {unit['bathrooms']}")
+                    with col3:
+                        st.write(f"**Square Feet:** {unit['square_feet']}")
+                        st.write(f"**Address:** {unit['address_line1']}")
             
             else:
                 st.error("❌ I had trouble processing your question. Please try rephrasing or contact our office directly.")
