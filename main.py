@@ -33,6 +33,9 @@ class CustomerQueryType(Enum):
     CONTACT_INFO = "contact_info"
     AMENITIES = "amenities"
     PROCEDURES = "procedures"
+    PERSONAL_ACCOUNT = "personal_account"  # New: Personal account questions
+    OVERDUE_PAYMENT = "overdue_payment"   # New: Specific to overdue payments
+    MAINTENANCE_ISSUE = "maintenance_issue" # New: Specific maintenance problems
 
 class CustomerDataRetriever:
     """Retrieve general data for customer queries"""
@@ -279,9 +282,25 @@ class SimplifiedCustomerChatbot:
         """Classify the type of customer query"""
         query_lower = query.lower()
         
+        # Personal account questions (contract expiry, personal details)
+        personal_keywords = ['my contract', 'my lease', 'when does my', 'my rental', 'my account', 'my unit', 'my apartment']
+        if any(keyword in query_lower for keyword in personal_keywords):
+            if any(word in query_lower for word in ['expire', 'end', 'expiry', 'ends']):
+                return CustomerQueryType.PERSONAL_ACCOUNT
+            elif any(word in query_lower for word in ['overdue', 'owe', 'behind', 'late']):
+                return CustomerQueryType.OVERDUE_PAYMENT
+            return CustomerQueryType.PERSONAL_ACCOUNT
+        
+        # Specific maintenance issues
+        maintenance_issues = ['bulb', 'light', 'broken', 'not working', 'damaged', 'leaking', 'clogged', 'no hot water', 'heater', 'ac not working']
+        if any(issue in query_lower for issue in maintenance_issues):
+            return CustomerQueryType.MAINTENANCE_ISSUE
+        
         # Payment-related keywords
-        payment_keywords = ['payment', 'pay', 'rent', 'due', 'late fee', 'deposit', 'money', 'bill', 'cost']
+        payment_keywords = ['payment', 'pay', 'rent', 'due', 'late fee', 'deposit', 'money', 'bill', 'cost', 'overdue']
         if any(keyword in query_lower for keyword in payment_keywords):
+            if any(word in query_lower for word in ['overdue', 'behind', 'owe', 'late']):
+                return CustomerQueryType.OVERDUE_PAYMENT
             return CustomerQueryType.PAYMENT_INQUIRY
         
         # Contract/lease keywords
