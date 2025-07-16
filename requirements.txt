@@ -1,0 +1,31 @@
+# Core Dependencies
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# AI and ML Libraries
+google-generativeai>=0.3.0
+sentence-transformers>=2.2.0
+langchain>=0.1.0
+faiss-cpu>=1.7.4
+
+# Database
+sqlite3
+
+# Data Processing
+python-dateutil>=2.8.0
+pytz>=2023.3
+
+# Optional: For enhanced functionality
+plotly>=5.15.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Development and Testing (optional)
+pytest>=7.4.0
+black>=23.0.0
+flake8>=6.0.0
+
+# For deployment (optional)
+gunicorn>=21.0.0
+watchdog>=3.0.0
