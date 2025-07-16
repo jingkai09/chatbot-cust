@@ -33,9 +33,9 @@ class CustomerQueryType(Enum):
     CONTACT_INFO = "contact_info"
     AMENITIES = "amenities"
     PROCEDURES = "procedures"
-    PERSONAL_ACCOUNT = "personal_account"  # New: Personal account questions
-    OVERDUE_PAYMENT = "overdue_payment"   # New: Specific to overdue payments
-    MAINTENANCE_ISSUE = "maintenance_issue" # New: Specific maintenance problems
+    PERSONAL_ACCOUNT = "personal_account"
+    OVERDUE_PAYMENT = "overdue_payment"
+    MAINTENANCE_ISSUE = "maintenance_issue"
 
 class TenantIdentifier:
     """Simple tenant identification system"""
@@ -283,32 +283,6 @@ class CustomerKnowledgeBase:
             - Key replacements: $25 fee, available during office hours
             - Move-in/move-out inspections required, schedule with office
             - After-hours package pickup available with prior arrangement
-            """,
-            
-            """
-            AMENITIES AND SERVICES:
-            - Swimming pool with seasonal hours (May-September)
-            - Fitness center with cardio and weight equipment
-            - Community room available for resident events
-            - On-site laundry facilities (coin-operated)
-            - Package receiving service during office hours
-            - Professional landscaping and grounds maintenance
-            - 24/7 emergency maintenance response
-            - Online resident portal for payments and requests
-            - Referral bonus program for new tenants
-            """,
-            
-            """
-            MOVE-IN AND MOVE-OUT PROCEDURES:
-            - Move-in inspection must be completed within 48 hours
-            - Security deposit receipt provided at lease signing
-            - Utility connection information provided at move-in
-            - Move-out notice required 30-60 days in advance (check lease)
-            - Move-out inspection scheduled within 72 hours of vacancy
-            - Security deposit return within 30 days with itemized deductions
-            - Forwarding address required for deposit return
-            - Professional cleaning recommended but not required
-            - Key return required to avoid lock change fees
             """
         ]
         
@@ -455,7 +429,7 @@ When you don't have data, guide them to contact the office."""
                 unit_number = lease_info['unit_number']
                 property_name = lease_info['property_name']
                 
-            response = f"""Hi {self.current_tenant['first_name']}! Here are your lease details:
+                response = f"""Hi {self.current_tenant['first_name']}! Here are your lease details:
 
 **Your Lease Information:**
 🏠 **Property:** {property_name}
@@ -565,38 +539,34 @@ When you don't have data, guide them to contact the office."""
 • Check/money order at office
 • Bank transfer/ACH"""
             else:
-                response = f"""
-                Hi {self.current_tenant['first_name']}! Here's your current payment status:
-                
-                💰 **Current Balance:** ${outstanding:.2f}
-                📄 **Unpaid Invoices:** {unpaid_count}
-                📅 **Next Due Date:** {next_due if next_due else 'N/A'}
-                
-                **Good news:** No overdue amounts!
-                
-                **Payment Options:**
-                💻 **Online Portal:** Available 24/7
-                📞 **Phone:** (555) 123-4567
-                🏢 **Office:** Drop off check or money order
-                🏦 **Auto-Pay:** Set up to never miss a payment
-                
-                **Payment Due:** 1st of each month
-                **Late Fee:** $50 after the 5th
-                """
+                response = f"""Hi {self.current_tenant['first_name']}! Here's your current payment status:
+
+💰 **Current Balance:** ${outstanding:.2f}
+📄 **Unpaid Invoices:** {unpaid_count}
+📅 **Next Due Date:** {next_due if next_due else 'N/A'}
+
+**Good news:** No overdue amounts!
+
+**Payment Options:**
+💻 **Online Portal:** Available 24/7
+📞 **Phone:** (555) 123-4567
+🏢 **Office:** Drop off check or money order
+🏦 **Auto-Pay:** Set up to never miss a payment
+
+**Payment Due:** 1st of each month
+**Late Fee:** $50 after the 5th"""
         else:
-            response = f"""
-            Hi {self.current_tenant['first_name']}! Great news about your account:
-            
-            ✅ **Account Status:** All payments current!
-            💰 **Outstanding Balance:** $0.00
-            📅 **No overdue amounts**
-            
-            **Your next payment:** Due on the 1st of next month
-            
-            **Keep it up!** Consider setting up auto-pay to maintain your perfect payment record:
-            💻 **Online Portal:** Set up automatic payments
-            📞 **Call Office:** (555) 123-4567 for auto-pay assistance
-            """
+            response = f"""Hi {self.current_tenant['first_name']}! Great news about your account:
+
+✅ **Account Status:** All payments current!
+💰 **Outstanding Balance:** $0.00
+📅 **No overdue amounts**
+
+**Your next payment:** Due on the 1st of next month
+
+**Keep it up!** Consider setting up auto-pay to maintain your perfect payment record:
+💻 **Online Portal:** Set up automatic payments
+📞 **Call Office:** (555) 123-4567 for auto-pay assistance"""
         
         return {
             'response': response,
@@ -624,50 +594,42 @@ When you don't have data, guide them to contact the office."""
         if any(word in query_lower for word in ['status', 'check', 'update', 'progress']):
             # They want to check existing tickets
             if tickets.empty:
-                response = f"""
-                Hi {self.current_tenant['first_name']}! You don't have any maintenance requests in our system currently.
-                
-                **Need to submit a new request?**
-                💻 **Online Portal:** Submit 24/7
-                📞 **Call Office:** (555) 123-4567
-                📧 **Email:** maintenance@propertymanagement.com
-                """
+                response = f"""Hi {self.current_tenant['first_name']}! You don't have any maintenance requests in our system currently.
+
+**Need to submit a new request?**
+💻 **Online Portal:** Submit 24/7
+📞 **Call Office:** (555) 123-4567
+📧 **Email:** maintenance@propertymanagement.com"""
             else:
                 open_tickets = tickets[tickets['status'] != 'completed']
                 completed_tickets = tickets[tickets['status'] == 'completed']
                 
-                response = f"""
-                Hi {self.current_tenant['first_name']}! Here's the status of your maintenance requests:
-                
-                **Open Requests ({len(open_tickets)}):**
-                """
+                response = f"""Hi {self.current_tenant['first_name']}! Here's the status of your maintenance requests:
+
+**Open Requests ({len(open_tickets)}):**"""
                 
                 for _, ticket in open_tickets.head(5).iterrows():
                     created_date = ticket['created_at'][:10] if ticket['created_at'] else 'Unknown'
                     response += f"""
-                🔧 **Ticket #{ticket['id']}** - {ticket['category']}
-                   📝 Issue: {ticket['description'][:60]}...
-                   📊 Status: {ticket['status'].title()}
-                   ⚡ Priority: {ticket['priority'].title()}
-                   📅 Submitted: {created_date}
-                """
+🔧 **Ticket #{ticket['id']}** - {ticket['category']}
+   📝 Issue: {ticket['description'][:60]}...
+   📊 Status: {ticket['status'].title()}
+   ⚡ Priority: {ticket['priority'].title()}
+   📅 Submitted: {created_date}"""
                 
                 if len(completed_tickets) > 0:
                     response += f"""
-                
-                **Recently Completed ({len(completed_tickets)}):**
-                """
+
+**Recently Completed ({len(completed_tickets)}):**"""
                     for _, ticket in completed_tickets.head(3).iterrows():
                         updated_date = ticket['updated_at'][:10] if ticket['updated_at'] else 'Unknown'
                         response += f"""
-                ✅ **Ticket #{ticket['id']}** - {ticket['category']}: Completed {updated_date}
-                """
+✅ **Ticket #{ticket['id']}** - {ticket['category']}: Completed {updated_date}"""
                 
                 response += """
-                
-                **Questions about a specific ticket?**
-                📞 Call office with ticket number: (555) 123-4567
-                """
+
+**Questions about a specific ticket?**
+📞 Call office with ticket number: (555) 123-4567"""
         else:
             # They're reporting a new issue - handle specific problems
             return self._handle_specific_maintenance_issue_with_context(query)
@@ -686,61 +648,55 @@ When you don't have data, guide them to contact the office."""
         tenant_name = self.current_tenant['first_name'] if self.current_tenant else "there"
         
         if any(word in query_lower for word in ['bulb', 'light', 'lighting']):
-            response = f"""
-            Hi {tenant_name}! I can help you with your lighting issue.
-            
-            **For light bulb problems:**
-            💡 **Standard bulbs** - These are typically your responsibility to replace
-            ⚡ **If it's electrical** - This is our responsibility to fix
-            
-            **What to do:**
-            1. **Try a new bulb first** - Standard replacements are tenant responsibility
-            2. **Still not working?** - Submit a maintenance request immediately
-            3. **Multiple lights out?** - Likely electrical, submit urgent request
-            
-            **Submit your request:**
-            💻 **Online Portal:** Mark as urgent if electrical
-            📞 **Call:** (555) 123-4567
-            📧 **Email:** maintenance@propertymanagement.com
-            
-            **Emergency?** If there's electrical danger, call (555) 123-EMERGENCY!
-            """
+            response = f"""Hi {tenant_name}! I can help you with your lighting issue.
+
+**For light bulb problems:**
+💡 **Standard bulbs** - These are typically your responsibility to replace
+⚡ **If it's electrical** - This is our responsibility to fix
+
+**What to do:**
+1. **Try a new bulb first** - Standard replacements are tenant responsibility
+2. **Still not working?** - Submit a maintenance request immediately
+3. **Multiple lights out?** - Likely electrical, submit urgent request
+
+**Submit your request:**
+💻 **Online Portal:** Mark as urgent if electrical
+📞 **Call:** (555) 123-4567
+📧 **Email:** maintenance@propertymanagement.com
+
+**Emergency?** If there's electrical danger, call (555) 123-EMERGENCY!"""
         
         elif any(word in query_lower for word in ['leak', 'leaking', 'water']):
-            response = f"""
-            Hi {tenant_name}! Water leaks need immediate attention!
-            
-            🚨 **TAKE ACTION NOW:**
-            1. **Turn off water** if possible
-            2. **Call emergency line:** (555) 123-EMERGENCY
-            3. **Document with photos** if safe
-            4. **Protect your belongings**
-            
-            **This is an EMERGENCY - Don't wait!**
-            📞 **Call NOW:** (555) 123-EMERGENCY (24/7)
-            
-            Water damage can affect other units and worsen quickly.
-            """
+            response = f"""Hi {tenant_name}! Water leaks need immediate attention!
+
+🚨 **TAKE ACTION NOW:**
+1. **Turn off water** if possible
+2. **Call emergency line:** (555) 123-EMERGENCY
+3. **Document with photos** if safe
+4. **Protect your belongings**
+
+**This is an EMERGENCY - Don't wait!**
+📞 **Call NOW:** (555) 123-EMERGENCY (24/7)
+
+Water damage can affect other units and worsen quickly."""
         
         else:
-            response = f"""
-            Hi {tenant_name}! I can help you submit a maintenance request.
-            
-            **To report your issue:**
-            📝 **Describe the problem clearly**
-            📷 **Take photos if helpful**
-            🏷️ **Choose priority level:**
-            • Emergency: Safety hazards, water leaks, no heat/AC
-            • Urgent: Appliances not working, plumbing issues  
-            • Standard: General repairs, cosmetic issues
-            
-            **Submit your request:**
-            💻 **Online Portal:** Available 24/7 (fastest)
-            📞 **Call Office:** (555) 123-4567
-            📧 **Email:** maintenance@propertymanagement.com
-            
-            **Emergency situations call:** (555) 123-EMERGENCY
-            """
+            response = f"""Hi {tenant_name}! I can help you submit a maintenance request.
+
+**To report your issue:**
+📝 **Describe the problem clearly**
+📷 **Take photos if helpful**
+🏷️ **Choose priority level:**
+• Emergency: Safety hazards, water leaks, no heat/AC
+• Urgent: Appliances not working, plumbing issues  
+• Standard: General repairs, cosmetic issues
+
+**Submit your request:**
+💻 **Online Portal:** Available 24/7 (fastest)
+📞 **Call Office:** (555) 123-4567
+📧 **Email:** maintenance@propertymanagement.com
+
+**Emergency situations call:** (555) 123-EMERGENCY"""
         
         return {
             'response': response,
@@ -775,15 +731,13 @@ When you don't have data, guide them to contact the office."""
         relevant_knowledge = self.knowledge_base.search_knowledge(query)
         
         # Generate response using knowledge base
-        response_prompt = f"""
-        Customer Question: {query}
-        
-        Relevant Knowledge Base Information:
-        {' '.join(relevant_knowledge)}
-        
-        Provide a helpful, comprehensive response using the knowledge base information.
-        Be friendly and professional.
-        """
+        response_prompt = f"""Customer Question: {query}
+
+Relevant Knowledge Base Information:
+{' '.join(relevant_knowledge)}
+
+Provide a helpful, comprehensive response using the knowledge base information.
+Be friendly and professional."""
         
         try:
             ai_response = self.model.generate_content(response_prompt)
@@ -800,130 +754,9 @@ When you don't have data, guide them to contact the office."""
                 'response': "I'd be happy to help! For specific questions, please contact our office at (555) 123-4567 during business hours.",
                 'error': str(e),
                 'success': False
-            } to all tenants.
-        """
-    
-    def classify_query(self, query: str) -> CustomerQueryType:
-        """Classify the type of customer query"""
-        query_lower = query.lower()
-        
-        # Personal account questions (contract expiry, personal details)
-        personal_keywords = ['my contract', 'my lease', 'when does my', 'my rental', 'my account', 'my unit', 'my apartment']
-        if any(keyword in query_lower for keyword in personal_keywords):
-            if any(word in query_lower for word in ['expire', 'end', 'expiry', 'ends']):
-                return CustomerQueryType.PERSONAL_ACCOUNT
-            elif any(word in query_lower for word in ['overdue', 'owe', 'behind', 'late']):
-                return CustomerQueryType.OVERDUE_PAYMENT
-            return CustomerQueryType.PERSONAL_ACCOUNT
-        
-        # Specific maintenance issues
-        maintenance_issues = ['bulb', 'light', 'broken', 'not working', 'damaged', 'leaking', 'clogged', 'no hot water', 'heater', 'ac not working']
-        if any(issue in query_lower for issue in maintenance_issues):
-            return CustomerQueryType.MAINTENANCE_ISSUE
-        
-        # Payment-related keywords
-        payment_keywords = ['payment', 'pay', 'rent', 'due', 'late fee', 'deposit', 'money', 'bill', 'cost', 'overdue']
-        if any(keyword in query_lower for keyword in payment_keywords):
-            if any(word in query_lower for word in ['overdue', 'behind', 'owe', 'late']):
-                return CustomerQueryType.OVERDUE_PAYMENT
-            return CustomerQueryType.PAYMENT_INQUIRY
-        
-        # Contract/lease keywords
-        contract_keywords = ['lease', 'contract', 'renewal', 'term', 'policy', 'rule', 'agreement', 'breaking lease', 'subletting']
-        if any(keyword in query_lower for keyword in contract_keywords):
-            return CustomerQueryType.CONTRACT_QUESTION
-        
-        # Maintenance keywords
-        maintenance_keywords = ['maintenance', 'repair', 'fix', 'broken', 'not working', 'issue', 'problem', 'emergency']
-        if any(keyword in query_lower for keyword in maintenance_keywords):
-            return CustomerQueryType.MAINTENANCE_REQUEST
-        
-        # Contact/office keywords
-        contact_keywords = ['contact', 'office', 'phone', 'email', 'hours', 'address', 'call']
-        if any(keyword in query_lower for keyword in contact_keywords):
-            return CustomerQueryType.CONTACT_INFO
-        
-        # Amenities keywords
-        amenity_keywords = ['pool', 'gym', 'fitness', 'laundry', 'parking', 'amenities', 'facilities']
-        if any(keyword in query_lower for keyword in amenity_keywords):
-            return CustomerQueryType.AMENITIES
-        
-        # Procedures keywords
-        procedure_keywords = ['move in', 'move out', 'inspection', 'keys', 'utilities', 'process', 'procedure']
-        if any(keyword in query_lower for keyword in procedure_keywords):
-            return CustomerQueryType.PROCEDURES
-        
-        return CustomerQueryType.GENERAL_POLICY
-    
-    def process_query(self, query: str) -> Dict[str, Any]:
-        """Process customer query and return response"""
-        
-        query_type = self.classify_query(query)
-        
-        # Search knowledge base for relevant information
-        relevant_knowledge = self.knowledge_base.search_knowledge(query)
-        
-        # Get general data if applicable
-        general_data = self.data_retriever.get_general_data(query_type, query)
-        
-        # Generate response
-        return self._generate_response(query, query_type, relevant_knowledge, general_data)
-    
-    def _generate_response(self, query: str, query_type: CustomerQueryType, 
-                         knowledge: List[str], data: pd.DataFrame) -> Dict[str, Any]:
-        """Generate comprehensive response"""
-        
-        # Prepare data context
-        data_context = ""
-        if not data.empty:
-            data_context = f"Additional data context: {data.to_dict('records')}"
-        
-        # Create response prompt
-        response_prompt = f"""
-        Customer Question: {query}
-        Query Type: {query_type.value}
-        
-        Relevant Knowledge Base Information:
-        {' '.join(knowledge)}
-        
-        {data_context}
-        
-        Provide a helpful, comprehensive response that:
-        1. Directly answers the customer's question
-        2. Uses the knowledge base information
-        3. Includes relevant details and procedures
-        4. Offers next steps if applicable
-        5. Maintains a friendly, professional tone
-        
-        If the question requires account-specific information, politely explain that 
-        they need to contact the office for personalized assistance.
-        """
-        
-        try:
-            ai_response = self.model.generate_content(response_prompt)
-            
-            # Add helpful contact information for account-specific needs
-            response_text = ai_response.text
-            
-            if query_type in [CustomerQueryType.PAYMENT_INQUIRY, CustomerQueryType.LEASE_INFO]:
-                response_text += "\n\n*For account-specific information, please contact our office at (555) 123-4567 during business hours.*"
-            
-            return {
-                'response': response_text,
-                'query_type': query_type.value,
-                'knowledge_used': knowledge,
-                'data_used': not data.empty,
-                'success': True
-            }
-            
-        except Exception as e:
-            return {
-                'response': "I'd be happy to help! For specific questions, please contact our office at (555) 123-4567 during business hours (Monday-Friday 8AM-6PM, Saturday 9AM-4PM).",
-                'error': str(e),
-                'success': False
             }
 
-# Streamlit UI for Simplified Customer Chatbot
+# Streamlit UI for Customer Chatbot
 def main():
     st.set_page_config(
         page_title="🏠 Tenant Information Portal", 
@@ -978,21 +811,59 @@ def main():
     
     # Initialize chatbot
     if 'chatbot' not in st.session_state:
-        st.session_state.chatbot = SimplifiedCustomerChatbot(db_path)
+        st.session_state.chatbot = DatabaseChatbot(db_path)
     
-    # Quick Questions Section
-    st.subheader("🚀 Quick Information")
+    # Initialize current tenant
+    if 'current_tenant' not in st.session_state:
+        st.session_state.current_tenant = None
     
-    quick_questions = [
-        ("💰 Rent Payment", "How do I pay my rent and when is it due?"),
-        ("🔧 Maintenance", "How do I submit a maintenance request?"),
-        ("📋 Lease Terms", "What are the standard lease terms and policies?"),
-        ("🏊 Amenities", "What amenities are available and what are the hours?"),
-        ("📞 Contact Info", "What are the office hours and contact information?"),
-        ("🚪 Move In/Out", "What are the move-in and move-out procedures?"),
-        ("🅿️ Parking", "What are the parking rules and guest policies?"),
-        ("🐕 Pets", "What is the pet policy?")
-    ]
+    # Tenant identification section
+    if not st.session_state.current_tenant:
+        st.info("👋 **Welcome!** To get personalized help with your account, please tell me your name in the chat below (e.g., 'I am John Smith' or 'My name is Sarah Johnson')")
+    
+    else:
+        # Show current tenant info
+        tenant = st.session_state.current_tenant
+        st.success(f"👋 Welcome back, **{tenant['first_name']} {tenant['last_name']}**!")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.write(f"🏠 **Property:** {tenant.get('property_name', 'N/A')}")
+        with col2:
+            st.write(f"🚪 **Unit:** {tenant.get('unit_number', 'N/A')}")
+        with col3:
+            if st.button("🔄 Switch Tenant", type="secondary"):
+                st.session_state.current_tenant = None
+                st.session_state.chatbot.current_tenant = None
+                st.rerun()
+    
+    # Quick Actions (updated for database functionality)
+    st.subheader("🚀 Quick Actions")
+    
+    if st.session_state.current_tenant:
+        # Personalized quick actions
+        quick_questions = [
+            ("📅 My Contract", "When does my contract expire?"),
+            ("💰 Payment Status", "What's my current balance?"),
+            ("🔧 My Maintenance", "Check my maintenance requests"),
+            ("🏠 My Unit Info", "Tell me about my unit"),
+            ("💸 Any Overdue?", "Do I have any overdue payments?"),
+            ("📞 Contact Office", "What are the office hours?"),
+            ("💡 Bulb Issue", "My bulb is damaged, what should I do?"),
+            ("🚰 Water Leak", "I have a water leak in my unit")
+        ]
+    else:
+        # General quick actions
+        quick_questions = [
+            ("💰 Payment Info", "How do I pay my rent?"),
+            ("🔧 Maintenance", "How do I submit a maintenance request?"),
+            ("📋 Lease Terms", "What are the standard lease terms?"),
+            ("📞 Contact Info", "What are the office hours?"),
+            ("🏊 Amenities", "What amenities are available?"),
+            ("🅿️ Parking", "What are the parking rules?"),
+            ("🚪 Moving", "What's the move-out process?"),
+            ("🐕 Pets", "What's the pet policy?")
+        ]
     
     cols = st.columns(4)
     for i, (title, question) in enumerate(quick_questions):
@@ -1003,26 +874,43 @@ def main():
     # Main Chat Interface
     st.subheader("💬 Ask Any Question")
     
-    # Display chat history
+    # Display chat history in a selectbox dropdown
     if st.session_state.chat_history:
-        st.markdown("### Recent Conversation")
-        for user_msg, bot_response, timestamp in st.session_state.chat_history[-3:]:
-            st.markdown(f"""
-            <div class="user-message">
-                <strong>You ({timestamp.strftime('%H:%M')}):</strong> {user_msg}
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown(f"""
-            <div class="bot-message">
-                <strong>Assistant:</strong> {bot_response}
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown("### 📜 Conversation History")
+        
+        # Create options for the dropdown
+        history_options = ["Select a conversation to view..."]
+        for i, (user_msg, bot_response, timestamp) in enumerate(reversed(st.session_state.chat_history)):
+            # Truncate long messages for dropdown display
+            short_msg = user_msg[:50] + "..." if len(user_msg) > 50 else user_msg
+            option = f"{timestamp.strftime('%H:%M')} - {short_msg}"
+            history_options.append(option)
+        
+        # Dropdown selection
+        selected_conversation = st.selectbox(
+            "Previous conversations:",
+            options=history_options,
+            key="conversation_selector"
+        )
+        
+        # Display selected conversation
+        if selected_conversation != "Select a conversation to view...":
+            selected_index = history_options.index(selected_conversation) - 1
+            if 0 <= selected_index < len(st.session_state.chat_history):
+                # Get the conversation (accounting for reversed order)
+                conv_index = len(st.session_state.chat_history) - 1 - selected_index
+                user_msg, bot_response, timestamp = st.session_state.chat_history[conv_index]
+                
+                # Display the selected conversation
+                st.markdown("**Selected Conversation:**")
+                st.info(f"🧑‍💻 **You ({timestamp.strftime('%H:%M')}):** {user_msg}")
+                st.success(f"🤖 **Assistant:** {bot_response}")
+                st.divider()
     
     # Query input
     user_query = st.text_area(
         "What would you like to know?",
-        placeholder="e.g., 'When is rent due?', 'How do I submit maintenance requests?', 'What are the pool hours?'",
+        placeholder="e.g., 'I am John Smith', 'When does my contract expire?', 'What's my current balance?'",
         height=100,
         value=st.session_state.get('suggested_query', '')
     )
@@ -1079,9 +967,6 @@ def main():
                     
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        balance_color = "normal"
-                        if payment['outstanding_balance'] > 0:
-                            balance_color = "inverse" if payment['overdue_amount'] > 0 else "off"
                         st.metric("Outstanding Balance", f"${payment['outstanding_balance']:.2f}")
                     
                     with col2:
@@ -1154,15 +1039,6 @@ def main():
         - **Subletting:** Requires written management approval
         """)
     
-    with st.expander("🏊 Amenities & Facilities", expanded=False):
-        st.markdown("""
-        - **Pool:** Seasonal hours (May-September), 6AM-10PM
-        - **Fitness Center:** 6AM-10PM daily with key fob
-        - **Laundry:** Coin-operated, available 24/7
-        - **Community Room:** Available for resident events
-        - **Parking:** One assigned space + guest parking
-        """)
-    
     # Footer
     st.markdown("---")
     st.info("**Need Personal Account Help?**")
@@ -1179,4 +1055,4 @@ def main():
     st.caption("This portal provides general information. For specific account details, please contact our office.")
 
 if __name__ == "__main__":
-    main()
+    main() 
